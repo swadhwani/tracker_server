@@ -12,8 +12,22 @@ var ticketRouter = require('./routes/ticketRouter');
 var userRouter = require('./routes/userRouter');
 var projectRouter = require('./routes/projectRouter');
 
+const mongoose = require('mongoose');
+mongoose.Promise = require('bluebird');
+
 var app = express();
 
+//Connection URL 
+const url = 'mongodb://localhost:27017/trackerServer';
+const connect = mongoose.connect(url, {
+    useMongoClient: true,
+    /* other options */
+  });
+
+  //Connecting to the Server
+  connect.then((db) => {
+    console.log("Connected correctly to server");
+}, (err) => { console.log(err); });
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
