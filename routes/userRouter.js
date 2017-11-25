@@ -1,50 +1,74 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+const Users = require('../models/users');
 
 const userRouter = express.Router();
 
 userRouter.use(bodyParser.json());
 
 userRouter.route('/')
-.all((req,res,next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type','text/plain');
-    next();
-})
-.get((req,res,next)=> { 
-    res.end('Will send all the dishes to you!');
+.get((req,res,next)=> {
+    Users.find({})
+    .then((users) => {
+        res.statusCode=200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(users);
+    }, (err) => next(err))
+    .catch((err) => next(err));
 })
 .post((req,res,next)=> { 
-    res.end('Will add the dish: ' +req.body.name + 'with Details: ' +req.body.description);
+    Users.create(req.body)
+    .then((user) =>{
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(user);
+    }, (err) => next(err))
+    .catch((err) => next(err));
 })
 .put( (req,res,next)=> { 
     res.statusCode = 403;
-    res.end('Put operation not supported on /dishes');
+    res.end('Put operation not supported on /users');
 })
 .delete((req,res,next)=> { 
-    res.end('Deleting all the dishes');
+    res.statusCode = 403;
+    res.end('Deleting not possible');
 });
 
 userRouter.route('/:userId')
-.all((req,res,next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type','text/plain');
-    next();
-})
 .get((req,res,next)=> { 
-    res.end('Will send details of the dish: ' + req.params.dishId + ' to you');
+    Users.findById(req.params.userId)
+    .then((user) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(user);
+    }, (err) => next(err))
+    .catch((err) => next(err));
 })
 .post((req,res,next)=> { 
     res.statusCode = 403;
-    res.end('Post operation not supported on /dishes/' + req.params.dishId);
+    res.end('Post operation not supported on /users/' + req.params.userId);
 })
-.put( (req,res,next)=> { 
-    res.write('Updating the dish: ' + req.params.dishId + '\n');
-    res.end('Will update the dish: ' + req.body.name + 
-          ' with details: ' + req.body.description);
+.put( (req,res,next)=> {
+    Users.findByIdAndUpdate(req.params.userId,  {
+        $set: req.body
+    }, { new: true })
+    .then((user) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(user);
+    }, (err) => next(err))
+    .catch((err) => next(err));
 })
 .delete((req,res,next)=> { 
-    res.end('Deleting dish: ' + req.params.dishId);
+    Users.findByIdAndRemove(req.params.userId)
+    .then((resp) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(resp);
+    }, (err) => next(err))
+    .catch((err) => next(err))
 });
 
 module.exports = userRouter;
