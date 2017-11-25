@@ -71,12 +71,17 @@ var ticketSchema = new Schema({
 
 ticketSchema.pre('save', function(next) {
     var doc = this;
-    counters.findByIdAndUpdate({_id: 'ticketId'}, {$inc: { seq: 1} }, function(error, counters)   {
-        if(error)
-            return next(error);
-        doc.ticketNumber = counters.seq;
+    if(doc.ticketNumber){
         next();
-    })
+    }
+        else{
+            counters.findByIdAndUpdate({_id: 'ticketId'}, {$inc: { seq: 1} }, function(error, counters)   {
+                if(error)
+                    return next(error);
+                doc.ticketNumber = counters.seq;
+                next();
+            })
+        }
 });
 
 var Tickets = mongoose.model('Ticket', ticketSchema);
